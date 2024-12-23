@@ -1,125 +1,117 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>触摸方向判断与计数</title>
-    <style>
-        /* 基本样式 */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8">
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+    }
 
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background-color: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            text-align: center;
-        }
+    #container {
+      display: flex;
+      height: 95vh; /* 占据 95% 的视口高度 */
+    }
 
-        .container {
-            padding: 2rem;
-            background-color: #fff;
-            border-radius: 0.5rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-        }
+    #left {
+      flex: 1; /* 左侧部分占据剩余空间 */
+      border-right: 1px solid black;
+      display: flex;
+      flex-direction: column;
+    }
 
-        h1 {
-            margin-bottom: 1rem;
-        }
+    #right {
+      flex: 1; /* 右侧部分占据剩余空间 */
+      padding: 10px;
+      overflow: auto;
+    }
 
-        #direction {
-            font-size: 1.5rem;
-            margin-top: 1rem;
-        }
+    .editor-container {
+      flex: 1; /* 让每个编辑器容器占据相等的高度 */
+      margin: 5px;
+    }
 
-        #counter {
-            font-size: 1.5rem;
-            margin-top: 1rem;
-        }
-    </style>
+    .CodeMirror {
+      height: 100%; /* 编辑器高度占满容器 */
+      font-size: 20px; /* 设置字体大小 */
+    }
+    .cm-s-monokai.CodeMirror{
+        height: 95%;
+    }
+    #resultDiv {
+      border: 1px solid black;
+      padding: 5px;
+      margin: 5px;
+      overflow: auto;
+    }
+  </style>
+  <!-- 引入 CodeMirror -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/css/css.min.js"></script>
 </head>
+
 <body>
-    <div class="container" id="event-container">
-        <h1>触摸方向判断与计数</h1>
-        <p>按住屏幕并移动手指来判断方向。</p>
-        <p id="direction">方向: 无</p>
-        <p id="counter">计数: 0</p>
+  <div id="container">
+    <div id="left">
+      <div class="editor-container">
+        <label for="htmlTextarea">HTML:</label>
+        <textarea id="htmlTextarea" placeholder="Enter HTML here"></textarea>
+      </div>
+      <div class="editor-container">
+        <label for="cssTextarea">CSS:</label>
+        <textarea id="cssTextarea" placeholder="Enter CSS here"></textarea>
+      </div>
     </div>
+    <div id="right">
+      <div id="resultDiv"></div>
+    </div>
+  </div>
+  <script>
+    // 初始化 CodeMirror 编辑器
+    const htmlEditor = CodeMirror.fromTextArea(document.getElementById('htmlTextarea'), {
+      mode: "text/html",
+      lineNumbers: true,
+      theme: "monokai"
+    });
 
-    <script>
-        // 获取容器元素、方向显示元素和计数器元素
-        const container = document.getElementById('event-container');
-        const directionElement = document.getElementById('direction');
-        const counterElement = document.getElementById('counter');
+    const cssEditor = CodeMirror.fromTextArea(document.getElementById('cssTextarea'), {
+      mode: "text/css",
+      lineNumbers: true,
+      theme: "monokai"
+    });
 
-        let startY;
-        let counter = 0;
+    function updateResult() {
+      const htmlContent = htmlEditor.getValue();
+      const cssContent = cssEditor.getValue();
+      try {
+        const styleContent = `<style>${cssContent}</style>`;
+        document.getElementById('resultDiv').innerHTML = `${styleContent}${htmlContent}`;
+      } catch (error) {
+        document.getElementById('resultDiv').innerHTML = `<p>Error: ${error.message}</p>`;
+      }
+    }
 
-        // 触摸开始事件
-        container.addEventListener('touchstart', function(event) {
-            event.preventDefault(); // 阻止默认行为
-            const touch = event.touches[0];
-            startY = touch.clientY;
-            directionElement.textContent = '方向: 无';
-        });
+    // 监听编辑器内容变化
+    htmlEditor.on("change", updateResult);
+    cssEditor.on("change", updateResult);
 
-        // 触摸移动事件
-        container.addEventListener('touchmove', function(event) {
-            event.preventDefault(); // 阻止默认行为
-            const touch = event.touches[0];
-            const currentY = touch.clientY;
+    // 初始更新结果
+    updateResult();
 
-            // 计算触摸点的移动方向
-            if (currentY < startY) {
-                directionElement.textContent = '方向: 往上翻';
-            } else if (currentY > startY) {
-                directionElement.textContent = '方向: 往下翻';
-            } else {
-                directionElement.textContent = '方向: 无';
-            }
-        });
-
-        // 触摸结束事件
-        container.addEventListener('touchend', function(event) {
-            event.preventDefault(); // 阻止默认行为
-            const touch = event.changedTouches[0];
-            const endY = touch.clientY;
-
-            // 计算最终的 Y 轴移动距离
-            const deltaY = endY - startY;
-
-            // 判断是否满足条件
-            if (deltaY < -50) {
-                // 向上翻了50像素以上
-                counter++;
-                directionElement.textContent = '方向: 向上翻超过50px';
-            } else if (deltaY > 50) {
-                // 向下翻了50像素以上
-                counter--;
-                directionElement.textContent = '方向: 向下翻超过50px';
-            } else {
-                directionElement.textContent = '方向: 无';
-            }
-
-            // 更新计数器显示
-            counterElement.textContent = `计数: ${counter}`;
-        });
-
-        // 触摸取消事件
-        container.addEventListener('touchcancel', function(event) {
-            event.preventDefault(); // 阻止默认行为
-            directionElement.textContent = '方向: 无';
-        });
-    </script>
+    // 使编辑器高度可调整
+    window.addEventListener('resize', () => {
+      htmlEditor.setSize(null, null); // 自动调整高度
+      cssEditor.setSize(null, null); // 自动调整高度
+    });
+  </script>
 </body>
+
 </html>
