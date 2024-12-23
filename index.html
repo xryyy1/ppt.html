@@ -37,7 +37,12 @@
          .domain([0, d3.max(data)])
          .range([svgHeight, 0]);
 
-        // 绘制柱子，设置填充颜色
+        // 创建颜色比例尺
+        const colorScale = d3.scaleLinear()
+         .domain([0, d3.max(data)])
+         .range(["lightgreen", "darkgreen"]);
+
+        // 绘制柱子，使用颜色比例尺
         svg.selectAll("rect")
          .data(data)
          .enter()
@@ -46,7 +51,7 @@
          .attr("y", d => yScale(d))
          .attr("width", xScale.bandwidth())
          .attr("height", d => svgHeight - yScale(d))
-         .attr("fill", "steelblue");
+         .attr("fill", d => colorScale(d));
     </script>
 </body>
 
