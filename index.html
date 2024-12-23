@@ -23,29 +23,30 @@
         const svgWidth = 400;
         const svgHeight = 300;
         const svg = d3.select("#chart")
-          .append("svg")
-          .attr("width", svgWidth)
-          .attr("height", svgHeight);
+         .append("svg")
+         .attr("width", svgWidth)
+         .attr("height", svgHeight);
 
         // 定义比例尺
         const xScale = d3.scaleBand()
-          .domain(d3.range(data.length))
-          .range([0, svgWidth])
-          .padding(0.2);
+         .domain(d3.range(data.length))
+         .range([0, svgWidth])
+         .padding(0.2);
 
         const yScale = d3.scaleLinear()
-          .domain([0, d3.max(data)])
-          .range([svgHeight, 0]);
+         .domain([0, d3.max(data)])
+         .range([svgHeight, 0]);
 
-        // 绘制柱子
+        // 绘制柱子，设置填充颜色
         svg.selectAll("rect")
-          .data(data)
-          .enter()
-          .append("rect")
-          .attr("x", (d, i) => xScale(i))
-          .attr("y", d => yScale(d))
-          .attr("width", xScale.bandwidth())
-          .attr("height", d => svgHeight - yScale(d));
+         .data(data)
+         .enter()
+         .append("rect")
+         .attr("x", (d, i) => xScale(i))
+         .attr("y", d => yScale(d))
+         .attr("width", xScale.bandwidth())
+         .attr("height", d => svgHeight - yScale(d))
+         .attr("fill", "steelblue");
     </script>
 </body>
 
